@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual J Engineering Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section {
+            background: white;
+            margin-bottom: 25px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            font-size: 1.4em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .wall-section, .window-section {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .wall-section h3, .window-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            padding: 15px 30px;
+            font-size: 18px;
+            display: block;
+            margin: 30px auto;
+            min-width: 200px;
+        }
+
+        .results {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results h2 {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .result-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        #wallsContainer, #windowsContainer {
+            margin-top: 20px;
+        }
+
+        .remove-btn {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .add-btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Manual J Engineering Analysis</h1>
+        
+        <!-- Building Information -->
+        <div class="section">
+            <h2>Building Information</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="buildingArea">Total Floor Area (sq ft)</label>
+                    <input type="number" id="buildingArea" value="2000">
+                </div>
+                <div class="form-group">
+                    <label for="ceilingHeight">Ceiling Height (ft)</label>
+                    <input type="number" id="ceilingHeight" value="8" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="occupants">Number of Occupants</label>
+                    <input type="number" id="occupants" value="4">
+                </div>
+                <div class="form-group">
+                    <label for="buildingType">Building Type</label>
+                    <select id="buildingType">
+                        <option value="residential">Residential</option>
+                        <option value="commercial">Commercial</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Climate Data -->
+        <div class="section">
+            <h2>Climate Data</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="outdoorTempWinter">Outdoor Design Temperature - Winter (°F)</label>
+                    <input type="number" id="outdoorTempWinter" value="10">
+                </div>
+                <div class="form-group">
+                    <label for="outdoorTempSummer">Outdoor Design Temperature - Summer (°F)</label>
+                    <input type="number" id="outdoorTempSummer" value="95">
+                </div>
+                <div class="form-group">
+                    <label for="indoorTempWinter">Indoor Design Temperature - Winter (°F)</label>
+                    <input type="number" id="indoorTempWinter" value="70">
+                </div>
+                <div class="form-group">
+                    <label for="indoorTempSummer">Indoor Design Temperature - Summer (°F)</label>
+                    <input type="number" id="indoorTempSummer" value="75">
+                </div>
+            </div>
+        </div>
+
+        <!-- Wall Sections -->
+        <div class="section">
+            <h2>Wall Sections</h2>
+            <div id="wallsContainer">
+                <div class="wall-section">
+                    <h3>Wall Section 1</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Area (sq ft)</label>
+                            <input type="number" class="wall-area" value="800">
+                        </div>
+                        <div class="form-group">
+                            <label>U-Value (BTU/hr·sq ft·°F)</label>
+                            <input type="number" class="wall-uvalue" value="0.08" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Orientation</label>
+                            <select class="wall-orientation">
+                                <option value="north">North</option>
+                                <option value="south">South</option>
+                                <option value="east">East</option>
+                                <option value="west">West</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="add-btn" onclick="addWallSection()">Add Wall Section</button>
+        </div>
+
+        <!-- Windows -->
+        <div class="section">
+            <h2>Windows</h2>
+            <div id="windowsContainer">
+                <div class="window-section">
+                    <h3>Window 1</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Area (sq ft)</label>
+                            <input type="number" class="window-area" value="40">
+                        </div>
+                        <div class="form-group">
+                            <label>U-Value (BTU/hr·sq ft·°F)</label>
+                            <input type="number" class="window-uvalue" value="0.35" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>SHGC (Solar Heat Gain Coefficient)</label>
+                            <input type="number" class="window-shgc" value="0.3" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Orientation</label>
+                            <select class="window-orientation">
+                                <option value="north">North</option>
+                                <option value="south">South</option>
+                                <option value="east">East</option>
+                                <option value="west">West</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="add-btn" onclick="addWindowSection()">Add Window</button>
+        </div>
+
+        <!-- Roof/Ceiling -->
+        <div class="section">
+            <h2>Roof/Ceiling</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="roofArea">Roof Area (sq ft)</label>
+                    <input type="number" id="roofArea" value="2000">
+                </div>
+                <div class="form-group">
+                    <label for="roofUValue">Roof U-Value (BTU/hr·sq ft·°F)</label>
+                    <input type="number" id="roofUValue" value="0.03" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="roofColor">Roof Color</label>
+                    <select id="roofColor">
+                        <option value="light">Light</option>
+                        <option value="medium">Medium</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floor -->
+        <div class="section">
+            <h2>Floor</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="floorArea">Floor Area (sq ft)</label>
+                    <input type="number" id="floorArea" value="2000">
+                </div>
+                <div class="form-group">
+                    <label for="floorUValue">Floor U-Value (BTU/hr·sq ft·°F)</label>
+                    <input type="number" id="floorUValue" value="0.05" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="floorType">Floor Type</label>
+                    <select id="floorType">
+                        <option value="slab">Slab on Grade</option>
+                        <option value="crawlspace">Crawlspace</option>
+                        <option value="basement">Basement</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Infiltration -->
+        <div class="section">
+            <h2>Infiltration</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="airChanges">Air Changes per Hour (ACH)</label>
+                    <input type="number" id="airChanges" value="0.35" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="buildingVolume">Building Volume (cu ft)</label>
+                    <input type="number" id="buildingVolume" value="16000" readonly>
+                </div>
+            </div>
+        </div>
+
+        <button class="calculate-btn" onclick="calculateManualJ()">Calculate Manual J Analysis</button>
+
+        <div class="results" id="results">
+            <h2>Manual J Results</h2>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-value" id="heatingLoad">0</div>
+                    <div class="result-label">Heating Load (BTU/h)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="coolingLoad">0</div>
+                    <div class="result-label">Cooling Load (BTU/h)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="heatingTons">0</div>
+                    <div class="result-label">Heating (Tons)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="coolingTons">0</div>
+                    <div class="result-label">Cooling (Tons)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="wallLoad">0</div>
+                    <div class="result-label">Wall Load (BTU/h)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="windowLoad">0</div>
+                    <div class="result-label">Window Load (BTU/h)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="roofLoad">0</div>
+                    <div class="result-label">Roof Load (BTU/h)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="infiltrationLoad">0</div>
+                    <div class="result-label">Infiltration Load (BTU/h)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update building volume when area or height changes
+        function updateBuildingVolume() {
+            const area = parseFloat(document.getElementById('buildingArea').value) || 0;
+            const height = parseFloat(document.getElementById('ceilingHeight').value) || 0;
+            document.getElementById('buildingVolume').value = area * height;
+        }
+
+        document.getElementById('buildingArea').addEventListener('input', updateBuildingVolume);
+        document.getElementById('ceilingHeight').addEventListener('input', updateBuildingVolume);
+
+        let wallCount = 1;
+        let windowCount = 1;
+
+        // Solar heat gain factors by orientation
+        const solarFactors = {
+            north: 15,
+            south: 200,
+            east: 130,
+            west: 130
+        };
+
+        // Roof color factors for cooling
+        const roofColorFactors = {
+            light: 1.0,
+            medium: 1.2,
+            dark: 1.4
+        };
+
+        function addWallSection() {
+            wallCount++;
+            const container = document.getElementById('wallsContainer');
+            const wallDiv = document.createElement('div');
+            wallDiv.className = 'wall-section';
+            wallDiv.innerHTML = `
+                <h3>Wall Section ${wallCount}</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Area (sq ft)</label>
+                        <input type="number" class="wall-area" value="400">
+                    </div>
+                    <div class="form-group">
+                        <label>U-Value (BTU/hr·sq ft·°F)</label>
+                        <input type="number" class="wall-uvalue" value="0.08" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Orientation</label>
+                        <select class="wall-orientation">
+                            <option value="north">North</option>
+                            <option value="south">South</option>
+                            <option value="east">East</option>
+                            <option value="west">West</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="remove-btn" onclick="removeElement(this.closest('.wall-section'))">Remove</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(wallDiv);
+        }
+
+        function addWindowSection() {
+            windowCount++;
+            const container = document.getElementById('windowsContainer');
+            const windowDiv = document.createElement('div');
+            windowDiv.className = 'window-section';
+            windowDiv.innerHTML = `
+                <h3>Window ${windowCount}</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Area (sq ft)</label>
+                        <input type="number" class="window-area" value="20">
+                    </div>
+                    <div class="form-group">
+                        <label>U-Value (BTU/hr·sq ft·°F)</label>
+                        <input type="number" class="window-uvalue" value="0.35" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>SHGC (Solar Heat Gain Coefficient)</label>
+                        <input type="number" class="window-shgc" value="0.3" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Orientation</label>
+                        <select class="window-orientation">
+                            <option value="north">North</option>
+                            <option value="south">South</option>
+                            <option value="east">East</option>
+                            <option value="west">West</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="remove-btn" onclick="removeElement(this.closest('.window-section'))">Remove</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(windowDiv);
+        }
+
+        function removeElement(element) {
+            element.remove();
+        }
+
+        function calculateManualJ() {
+            // Get climate data
+            const outdoorTempWinter = parseFloat(document.getElementById('outdoorTempWinter').value);
+            const outdoorTempSummer = parseFloat(document.getElementById('outdoorTempSummer').value);
+            const indoorTempWinter = parseFloat(document.getElementById('indoorTempWinter').value);
+            const indoorTempSummer = parseFloat(document.getElementById('indoorTempSummer').value);
+
+            // Temperature differences
+            const heatingDelta = indoorTempWinter - outdoorTempWinter;
+            const coolingDelta = outdoorTempSummer - indoorTempSummer;
+
+            let totalHeatingLoad = 0;
+            let totalCoolingLoad = 0;
+            let wallHeatingLoad = 0;
+            let wallCoolingLoad = 0;
+            let windowHeatingLoad = 0;
+            let windowCoolingLoad = 0;
+
+            // Calculate wall loads
+            const wallSections = document.querySelectorAll('.wall-section');
+            wallSections.forEach(section => {
+                const area = parseFloat(section.querySelector('.wall-area').value) || 0;
+                const uValue = parseFloat(section.querySelector('.wall-uvalue').value) || 0;
+                
+                const heatingLoad = area * uValue * heatingDelta;
+                const coolingLoad = area * uValue * coolingDelta;
+                
+                wallHeatingLoad += heatingLoad;
+                wallCoolingLoad += coolingLoad;
+            });
+
+            // Calculate window loads
+            const windowSections = document.querySelectorAll('.window-section');
+            windowSections.forEach(section => {
+                const area = parseFloat(section.querySelector('.window-area').value) || 0;
+                const uValue = parseFloat(section.querySelector('.window-uvalue').value) || 0;
+                const shgc = parseFloat(section.querySelector('.window-shgc').value) || 0;
+                const orientation = section.querySelector('.window-orientation').value;
+                
+                // Conductive load
+                const heatingLoad = area * uValue * heatingDelta;
+                const coolingLoad = area * uValue * coolingDelta;
+                
+                // Solar load (cooling only)
+                const solarLoad = area * shgc * solarFactors[orientation];
+                
+                windowHeatingLoad += heatingLoad;
+                windowCoolingLoad += coolingLoad + solarLoad;
+            });
+
+            // Calculate roof loads
+            const roofArea = parseFloat(document.getElementById('roofArea').value) || 0;
+            const roofUValue = parseFloat(document.getElementById('roofUValue').value) || 0;
+            const roofColor = document.getElementById('roofColor').value;
+            const roofColorFactor = roofColorFactors[roofColor];
+            
+            const roofHeatingLoad = roofArea * roofUValue * heatingDelta;
+            const roofCoolingLoad = roofArea * roofUValue * coolingDelta * roofColorFactor;
+
+            // Calculate floor loads
+            const floorArea = parseFloat(document.getElementById('floorArea').value) || 0;
+            const floorUValue = parseFloat(document.getElementById('floorUValue').value) || 0;
+            
+            const floorHeatingLoad = floorArea * floorUValue * heatingDelta;
+            const floorCoolingLoad = 0; // Floor typically doesn't contribute to cooling load
+
+            // Calculate infiltration loads
+            const airChanges = parseFloat(document.getElementById('airChanges').value) || 0;
+            const buildingVolume = parseFloat(document.getElementById('buildingVolume').value) || 0;
+            const occupants = parseFloat(document.getElementById('occupants').value) || 0;
+            
+            // Air density * specific heat (approximately 0.018 BTU/cfm·°F)
+            const airFlowRate = (airChanges * buildingVolume) / 60; // CFM
+            const infiltrationHeatingLoad = airFlowRate * 1.08 * heatingDelta;
+            const infiltrationCoolingLoad = airFlowRate * 1.08 * coolingDelta;
+
+            // Internal loads (people, lights, equipment)
+            const occupantLoad = occupants * 300; // 300 BTU/h per person (sensible)
+            const equipmentLoad = 2.0 * parseFloat(document.getElementById('buildingArea').value); // 2 BTU/sqft
+
+            // Total loads
+            totalHeatingLoad = wallHeatingLoad + windowHeatingLoad + roofHeatingLoad + 
+                              floorHeatingLoad + infiltrationHeatingLoad;
+
+            totalCoolingLoad = wallCoolingLoad + windowCoolingLoad + roofCoolingLoad + 
+                              floorCoolingLoad + infiltrationCoolingLoad + occupantLoad + equipmentLoad;
+
+            // Safety factors (typically 10-20%)
+            totalHeatingLoad *= 1.1;
+            totalCoolingLoad *= 1.1;
+
+            // Update display
+            document.getElementById('heatingLoad').textContent = Math.round(totalHeatingLoad).toLocaleString();
+            document.getElementById('coolingLoad').textContent = Math.round(totalCoolingLoad).toLocaleString();
+            document.getElementById('heatingTons').textContent = (totalHeatingLoad / 12000).toFixed(1);
+            document.getElementById('coolingTons').textContent = (totalCoolingLoad / 12000).toFixed(1);
+            document.getElementById('wallLoad').textContent = Math.round(wallHeatingLoad + wallCoolingLoad).toLocaleString();
+            document.getElementById('windowLoad').textContent = Math.round(windowHeatingLoad + windowCoolingLoad).toLocaleString();
+            document.getElementById('roofLoad').textContent = Math.round(roofHeatingLoad + roofCoolingLoad).toLocaleString();
+            document.getElementById('infiltrationLoad').textContent = Math.round(infiltrationHeatingLoad + infiltrationCoolingLoad).toLocaleString();
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize building volume
+        updateBuildingVolume();
+    </script>
+</body>
+</html>
